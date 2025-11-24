@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(cuid())
+  email    String    @unique
+  name     String?
+  image    String?
+
+  sessions TrainingSession[]
+  progress UserProgress?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TrainingSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type       TrainingType
+  difficulty Int          @default(1)
+  duration   Int
+  success    Boolean
+
+  startedAt   DateTime
+  completedAt DateTime?
+
+  @@index([userId, startedAt])
+}
+
+enum TrainingType {
+  PARALLEL
+  CROSS
+}
+
+model UserProgress {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parallelLevel      Int @default(1)
+  crossLevel         Int @default(1)
+  totalSessions      Int @default(0)
+  successfulSessions Int @default(0)
+  totalDuration      Int @default(0)
+  streak             Int @default(0)
+  lastTrainingAt     DateTime?
+
+  updatedAt DateTime @updatedAt
+}
